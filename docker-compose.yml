@@ -1,0 +1,44 @@
+services:
+  watcher:
+    build: ./app
+    container_name: watcher
+    user: "0:0"
+    volumes:
+      - ./app:/app
+      - ./nfacct/data:/nfacct/data:rw
+    command: ["python", "-m", "src.watcher"]
+    restart: always
+
+  search_api:
+    build: ./app
+    container_name: search_api
+    user: "appuser"
+    volumes:
+      - ./app:/app
+      - ./nfacct/data:/nfacct/data:ro
+    ports:
+      - "8080:8000"
+    working_dir: /app
+    command: ["python", "-m", "uvicorn", "src.search_api:app", "--host", "0.0.0.0", "--port", "8000"]
+    restart: always
+
+  cli:
+    build: ./app
+    container_name: cli
+    user: "appuser"
+    volumes:
+      - ./app:/app
+      - ./nfacct/data:/nfacct/data:rw
+    working_dir: /app
+    entrypoint: ["python", "-m", "src.cli"]
+
+  nfacct:
+    privileged: true
+    image: pmacct/nfacctd:latest
+    container_name: nfacct
+    restart: always
+    command: ["nfacctd", "-f", "/nfacct/nfacctd.conf"]
+    volumes:
+      - ./nfacct:/nfacct
+    ports:
+      - "2055:2055/udp"

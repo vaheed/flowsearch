@@ -1,0 +1,33 @@
+import time
+import os
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from .config import DATA_DIR, logger
+from .converter import convert_all_csv_in_directory
+
+class CSVEventHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if not event.is_directory and event.src_path.endswith(".csv"):
+            logger.info(f"New CSV detected: {event.src_path}, triggering conversion...")
+            convert_all_csv_in_directory(DATA_DIR)
+
+def main():
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR, exist_ok=True)
+
+    event_handler = CSVEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, DATA_DIR, recursive=True)
+    observer.start()
+    logger.info("Watcher started, monitoring for new CSV files.")
+
+    try:
+        while True:
+            time.sleep(10)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+if __name__ == "__main__":
+    main()
+

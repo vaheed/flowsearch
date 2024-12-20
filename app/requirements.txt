@@ -1,0 +1,8 @@
+fastapi==0.70.0
+uvicorn==0.17.6
+pytest==6.2.5
+pyarrow==7.0.0
+watchdog==2.1.9
+pandas==1.4.0
+dask==2023.1.0
+numpy<2
